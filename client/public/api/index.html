@@ -1,0 +1,45 @@
+// api/index.js
+export default function handler(req, res) {
+  // Handle CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle different routes
+  const { method, url } = req;
+  
+  if (method === 'GET') {
+    if (url === '/api' || url === '/api/') {
+      return res.status(200).json({
+        message: 'Ecommerce API is working!',
+        timestamp: new Date().toISOString(),
+        platform: 'Vercel',
+        routes: ['/api', '/api/test', '/api/health']
+      });
+    }
+    
+    if (url === '/api/test') {
+      return res.status(200).json({
+        message: 'Test successful!',
+        status: 'OK',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    if (url === '/api/health') {
+      return res.status(200).json({
+        status: 'healthy',
+        service: 'ecommerce-api',
+        uptime: process.uptime()
+      });
+    }
+  }
+
+  // Default response
+  res.status(200).json({
+    message: 'Hello from Ecommerce API!',
+    method: method,
+    url: url,
+    timestamp: new Date().toISOString()
+  });
+}
