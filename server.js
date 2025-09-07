@@ -1,30 +1,50 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
-const config = require('config');
-
-const authRoutes = require('./routes/auth');
-const itemRoutes = require('./routes/item');
-const cartRoutes = require('./routes/cart');
-const orderRoutes = require('./routes/order');
 
 const app = express();
-app.use(express.json());
 
-app.use('/api',authRoutes);
-app.use('/api',itemRoutes);
-app.use('/api',cartRoutes);
-app.use('/api',orderRoutes);
-
-if(process.env.NODE_ENV === 'production') {
-    app.use(express.static('client/build'));
-    app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname,'client','build','index.html'));
+// Basic test route
+app.get('/api/test', (req, res) => {
+    res.status(200).json({ 
+        message: 'Server is working!', 
+        timestamp: new Date().toISOString(),
+        platform: 'Vercel'
     });
-}
+});
 
-const dbURI = config.get('dbURI');
-const port = process.env.PORT || 4000;
-mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex:true })
-  .then(() => app.listen(port, () => console.log(`Server running on http://localhost:${port}`)))
-  .catch((err) => console.log(err));
+// Health check route  
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        service: 'Ecommerce API',
+        env: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Root API route
+app.get('/api', (req, res) => {
+    res.status(200).json({ 
+        message: 'Ecommerce API v1.0', 
+        endpoints: ['/api/test', '/api/health'],
+        status: 'Running'
+    });
+});
+
+// Catch all other routes
+app.get('*', (req, res) => {
+    res.status(200).json({ 
+        message: 'Ecommerce App',
+        api: '/api',
+        requested_path: req.path
+    });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ 
+        error: 'Internal Server Error',
+        message: err.message 
+    });
+});
+
+module.exports = app;
